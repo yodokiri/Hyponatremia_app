@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>低ナトリウム血症 補正シミュレーター</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1>Na補正シミュレーター</h1>
+            <p>食事・内服・輸液・尿出納から血清Na値の24時間推移を予測します。</p>
+        </header>
+
+        <main class="stack">
+            <!-- 患者基本情報 -->
+            <section class="card">
+                <h2 class="section-title">患者基本情報</h2>
+                <div class="grid grid-2">
+                    <div class="field">
+                        <label for="currentNa">現在の血清Na濃度 (mEq/L)</label>
+                        <input type="number" id="currentNa" value="125" step="0.1" inputmode="decimal">
+                    </div>
+                    <div class="field">
+                        <label for="weight">体重 (kg)</label>
+                        <input type="number" id="weight" value="60" step="0.1" inputmode="decimal">
+                    </div>
+                    <div class="field">
+                        <label for="coefficient">体液量係数 (TBW = 体重 × 係数)</label>
+                        <select id="coefficient">
+                            <option value="0.6" selected>男性 (0.6)</option>
+                            <option value="0.5">女性 (0.5)</option>
+                            <option value="0.5">高齢男性 (0.5)</option>
+                            <option value="0.45">高齢女性 (0.45)</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- IN -->
+            <section class="card section-in">
+                <h2 class="section-title">IN（体内に入るもの）</h2>
+                <div class="grid grid-2">
+                    <div class="field">
+                        <label for="dietSalt">食事由来 食塩相当量 (g/日)</label>
+                        <input type="number" id="dietSalt" value="6" step="0.1" inputmode="decimal">
+                        <p class="hint">NaCl 1 g ≈ 17 mEq Na。摂取率を乗算</p>
+                    </div>
+                    <div class="field">
+                        <label for="oralNaCl">内服NaCl (g/日)</label>
+                        <input type="number" id="oralNaCl" value="0" step="0.5" inputmode="decimal">
+                        <p class="hint">NaCl錠等の経口食塩。摂取率は乗じず確実投与で計算</p>
+                    </div>
+                    <div class="field">
+                        <label for="dietK">食事由来K (g/日・元素K)</label>
+                        <input type="number" id="dietK" value="2" step="0.1" inputmode="decimal">
+                        <p class="hint">K 1 g ≈ 25.6 mEq として換算</p>
+                    </div>
+                    <div class="field">
+                        <label for="dietWater">食事由来水分 (mL/日)</label>
+                        <input type="number" id="dietWater" value="800" step="10" inputmode="decimal">
+                    </div>
+                    <div class="field">
+                        <label for="intakePercent">予想食事摂取率 (%)</label>
+                        <input type="number" id="intakePercent" value="50" step="5" min="0" max="100" inputmode="decimal">
+                        <p class="hint">食事Na・K・水分に乗算（内服NaClには非適用）</p>
+                    </div>
+                    <div class="field">
+                        <label for="drinkWater">予想飲水量 (mL/日)</label>
+                        <input type="number" id="drinkWater" value="500" step="50" inputmode="decimal">
+                    </div>
+                    <div class="field">
+                        <label for="metabolicWater">代謝水 (mL/日)</label>
+                        <input type="number" id="metabolicWater" inputmode="decimal" disabled>
+                        <label class="checkbox-row">
+                            <input type="checkbox" id="manualMetabolic">
+                            <span>手動で入力する</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 輸液 -->
+                <div class="infusion-list" id="infusion-list">
+                    <div class="infusion-item">
+                        <div class="infusion-item__title">輸液 1</div>
+                        <div class="field">
+                            <label>Na濃度 (mEq/L)</label>
+                            <input type="number" class="infusionNa" value="154" step="1" inputmode="decimal">
+                        </div>
+                        <div class="field">
+                            <label>K濃度 (mEq/L)</label>
+                            <input type="number" class="infusionK" value="0" step="1" inputmode="decimal">
+                        </div>
+                        <div class="field">
+                            <label>1日の投与量 (mL/日)</label>
+                            <input type="number" class="infusionVolumeDay" value="1000" step="50" inputmode="decimal">
+                        </div>
+                        <div class="infusion-item__actions">
+                            <button type="button" class="btn-remove remove-infusion-btn">− 削除</button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" id="add-infusion-btn" class="btn btn-add">＋ 別の輸液を追加する</button>
+            </section>
+
+            <!-- OUT -->
+            <section class="card section-out">
+                <h2 class="section-title">OUT（体から出るもの）</h2>
+                <div class="grid grid-2">
+                    <div class="field">
+                        <label for="urineNa">尿中Na濃度 (mEq/L)</label>
+                        <input type="number" id="urineNa" value="40" step="1" inputmode="decimal">
+                    </div>
+                    <div class="field">
+                        <label for="urineK">尿中K濃度 (mEq/L)</label>
+                        <input type="number" id="urineK" value="30" step="1" inputmode="decimal">
+                    </div>
+                    <div class="field">
+                        <label for="urineVolume">予想尿量 (mL/hr)</label>
+                        <input type="number" id="urineVolume" value="80" step="10" inputmode="decimal">
+                    </div>
+                    <div class="field">
+                        <label for="insensibleLoss">不感蒸泄量 (mL/hr)</label>
+                        <input type="number" id="insensibleLoss" inputmode="decimal" disabled>
+                        <label class="checkbox-row">
+                            <input type="checkbox" id="manualInsensible">
+                            <span>手動で入力する</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ODSリスク因子 -->
+            <section class="card">
+                <h2 class="section-title">浸透圧性脱髄(ODS)の高リスク因子</h2>
+                <p class="hint">いずれか1つでも該当すると、安全な補正幅の目標を厳格化します（≤8 → ≤6 mEq/L/24h）。</p>
+                <div class="risk-factors">
+                    <label class="checkbox-row"><input type="checkbox" id="riskNa105"><span>血清Na ≤ 105 mEq/L</span></label>
+                    <label class="checkbox-row"><input type="checkbox" id="riskHypoK"><span>低K血症</span></label>
+                    <label class="checkbox-row"><input type="checkbox" id="riskAlcohol"><span>アルコール依存</span></label>
+                    <label class="checkbox-row"><input type="checkbox" id="riskLiver"><span>進行肝疾患・低栄養</span></label>
+                </div>
+            </section>
+
+            <!-- 自動計算の注記 -->
+            <section class="card note-card">
+                <h3 class="subsection-title">自動計算の初期値</h3>
+                <ul>
+                    <li>代謝水 (mL/日) = 体重 (kg) × 5</li>
+                    <li>不感蒸泄量 (mL/hr) = 体重 (kg) × 15 ÷ 24</li>
+                </ul>
+            </section>
+
+            <div class="actions">
+                <button id="calculate-btn" class="btn btn-primary">計算実行</button>
+            </div>
+
+            <!-- 結果 -->
+            <section class="card" id="result-section" hidden>
+                <h2 class="section-title">計算結果</h2>
+                <div class="result-grid">
+                    <div class="result-card">
+                        <p class="label">1時間後の予測Na値</p>
+                        <p class="value" id="predictedNaNextHour">– mEq/L</p>
+                    </div>
+                    <div class="result-card">
+                        <p class="label">初期1時間のNa変化量</p>
+                        <p class="value" id="naChangeFirstHour">– mEq/hr</p>
+                    </div>
+                    <div class="result-card">
+                        <p class="label">24時間後の予測Na値</p>
+                        <p class="value" id="predictedNa24Hours">– mEq/L</p>
+                    </div>
+                    <div class="result-card">
+                        <p class="label">24時間の総補正幅</p>
+                        <p class="value" id="naChange24h">– mEq/L</p>
+                    </div>
+                </div>
+
+                <div class="alert" id="alert-box">
+                    <p class="alert__title" id="alert-text"></p>
+                    <p class="alert__sub" id="alert-sub"></p>
+                </div>
+
+                <div class="chart-wrap">
+                    <h3 class="subsection-title">血清Naの24時間推移（予測）</h3>
+                    <div id="chart-host"></div>
+                    <p class="hint">緑帯＝目標補正幅の範囲、黄帯＝上限超、赤帯＝過補正の危険域。</p>
+                </div>
+
+                <div class="formula">
+                    <details>
+                        <summary>計算式の詳細を表示</summary>
+                        <div id="formula-content"></div>
+                    </details>
+                </div>
+            </section>
+        </main>
+
+        <footer class="disclaimer">
+            <p>【免責事項】本ツールは医療従事者の臨床判断を補助するものであり、これに代わるものではありません。</p>
+            <p>尿Na濃度・尿量は予測期間中一定と仮定した簡易モデルです。最終的な治療方針は必ず医師の責任において判断してください。</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js" defer></script>
+</body>
+</html>
