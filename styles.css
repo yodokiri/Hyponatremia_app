@@ -54,7 +54,7 @@ body {
 .field input[type="number"], .field select {
     display: block; width: 100%;
     padding: .625rem .75rem;
-    font-size: 16px; /* iOSでフォーカス時の自動ズームを防ぐ（16px未満で発生） */
+    font-size: 16px; /* iOS縺ｧ繝輔か繝ｼ繧ｫ繧ｹ譎ゅ�閾ｪ蜍輔ぜ繝ｼ繝�繧帝亟縺撰ｼ�16px譛ｪ貅縺ｧ逋ｺ逕滂ｼ� */
     color: var(--gray-900);
     background: #fff;
     border: 1px solid var(--gray-300);
@@ -149,7 +149,7 @@ body {
 
 [hidden] { display: none !important; }
 
-/* スマホ: 計算ボタンを下部に固定（初回計算後は .computed で通常配置に戻す） */
+/* 繧ｹ繝槭�: 險育ｮ励�繧ｿ繝ｳ繧剃ｸ矩Κ縺ｫ蝗ｺ螳夲ｼ亥�蝗櫁ｨ育ｮ怜ｾ後� .computed 縺ｧ騾壼ｸｸ驟咲ｽｮ縺ｫ謌ｻ縺呻ｼ� */
 @media (max-width: 639px) {
     .container { padding: 1rem .75rem 0; }
     .card { padding: 1.25rem 1rem; }
